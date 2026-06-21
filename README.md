@@ -1,6 +1,6 @@
 # 英文打字临摹
 
-在线版：发布后由 GitHub Pages 提供。
+在线版：https://sange1022.github.io/english-copywork-trainer/
 
 ## 直接使用
 
