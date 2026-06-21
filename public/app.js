@@ -1,6 +1,9 @@
-import { splitSentences, tokenizeWords } from "/modules/text.js";
-import { accuracyFor, applyKey, countLetters, createTypingState } from "/modules/typing.js";
-import { translationView } from "/translation-view.js";
+import { splitSentences, tokenizeWords } from "./modules/text.js";
+import { accuracyFor, applyKey, countLetters, createTypingState } from "./modules/typing.js";
+import { createBrowserTranslationApi } from "./browser-api.js";
+import { translationView } from "./translation-view.js";
+
+const translationApi = createBrowserTranslationApi();
 
 const $ = (selector) => document.querySelector(selector);
 const screens = {
@@ -100,14 +103,7 @@ function renderTranslation({ loading = false } = {}) {
 
 async function loadTranslations() {
   try {
-    const response = await fetch("/api/translate", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ sentences: state.sentences })
-    });
-    if (!response.ok) throw new Error();
-    const body = await response.json();
-    state.translations = body.translations;
+    state.translations = await translationApi.translateSentences(state.sentences);
   } catch {
     state.translations = state.sentences.map(() => ({
       text: "翻译暂不可用",
@@ -123,14 +119,8 @@ async function retryCurrentTranslation() {
   const index = state.sentenceIndex;
   renderTranslation({ loading: true });
   try {
-    const response = await fetch("/api/translate", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ sentences: [state.sentences[index]] })
-    });
-    if (!response.ok) throw new Error();
-    const body = await response.json();
-    state.translations[index] = body.translations[0];
+    const results = await translationApi.translateSentences([state.sentences[index]]);
+    state.translations[index] = results[0];
   } catch {
     state.translations[index] = { text: "翻译暂不可用", available: false };
   }
@@ -218,13 +208,7 @@ async function lookupWord(word, anchor) {
   popover.classList.remove("hidden");
 
   try {
-    const response = await fetch("/api/word", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ word })
-    });
-    if (!response.ok) throw new Error();
-    const body = await response.json();
+    const body = await translationApi.lookupWord(word);
     $("#popover-meaning").textContent = body.meaning;
   } catch {
     $("#popover-meaning").textContent = "暂时查不到释义";
