@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>英文打字临摹</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="app">
+      <section id="home-screen" class="screen">
+        <header class="intro">
+          <p class="brand">TYPE · LEARN · REMEMBER</p>
+          <h1>英文打字临摹</h1>
+          <p>粘贴英文，逐字输入。错了就停下来改对，再继续。</p>
+        </header>
+
+        <label class="input-label" for="source-text">粘贴英文内容</label>
+        <textarea id="source-text" maxlength="12000" placeholder="例如：Learning a language takes time. Practice makes progress."></textarea>
+        <div class="input-footer">
+          <span id="character-count">0 / 12000</span>
+          <span>翻译需要联网</span>
+        </div>
+        <p id="home-error" class="error-message" role="alert"></p>
+        <button id="start-button" class="primary-button" type="button">开始练习</button>
+      </section>
+
+      <section id="practice-screen" class="screen hidden" aria-labelledby="progress-label">
+        <div class="practice-header">
+          <button id="exit-button" class="text-button" type="button">← 退出</button>
+          <span id="progress-label">第 1 / 1 句</span>
+          <span id="accuracy-label">正确率 100%</span>
+        </div>
+
+        <div class="practice-paper" id="practice-paper" tabindex="0">
+          <div id="original-sentence" class="original-sentence"></div>
+          <div id="translation" class="translation">翻译加载中…</div>
+          <div id="copy-line" class="copy-line" aria-live="polite"></div>
+          <p id="typing-hint" class="typing-hint">直接用键盘输入上面的淡色英文</p>
+        </div>
+
+        <div id="word-popover" class="word-popover hidden" role="dialog">
+          <strong id="popover-word"></strong>
+          <span id="popover-meaning">查询中…</span>
+        </div>
+      </section>
+
+      <section id="complete-screen" class="screen hidden">
+        <div class="complete-mark">✓</div>
+        <h2>练习完成</h2>
+        <div class="stats">
+          <div><strong id="final-sentences">0</strong><span>句子</span></div>
+          <div><strong id="final-accuracy">100%</strong><span>正确率</span></div>
+          <div><strong id="final-time">0:00</strong><span>用时</span></div>
+        </div>
+        <button id="repeat-button" class="primary-button" type="button">再练一次</button>
+        <button id="home-button" class="text-button centered" type="button">返回首页</button>
+      </section>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
