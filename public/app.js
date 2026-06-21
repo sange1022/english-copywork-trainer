@@ -1,5 +1,5 @@
 import { splitSentences, tokenizeWords } from "/modules/text.js";
-import { accuracyFor, applyKey, createTypingState } from "/modules/typing.js";
+import { accuracyFor, applyKey, countLetters, createTypingState } from "/modules/typing.js";
 
 const $ = (selector) => document.querySelector(selector);
 const screens = {
@@ -27,14 +27,14 @@ function showScreen(name) {
 }
 
 function totalCharacters() {
-  return state.sentences.reduce((sum, sentence) => sum + sentence.length, 0);
+  return state.sentences.reduce((sum, sentence) => sum + countLetters(sentence), 0);
 }
 
 function currentAccuracy() {
   const completed = state.sentences
     .slice(0, state.sentenceIndex)
-    .reduce((sum, sentence) => sum + sentence.length, 0);
-  const current = state.typing?.index ?? 0;
+    .reduce((sum, sentence) => sum + countLetters(sentence), 0);
+  const current = state.typing?.correct ?? 0;
   return accuracyFor(completed + current, state.totalErrors);
 }
 
@@ -81,7 +81,7 @@ function renderSentence() {
   $("#accuracy-label").textContent = `正确率 ${currentAccuracy()}%`;
   $("#translation").textContent =
     state.translations[state.sentenceIndex]?.text ?? "翻译加载中…";
-  $("#typing-hint").textContent = "直接用键盘输入淡色英文；输错后按退格修改";
+  $("#typing-hint").textContent = "只需输入字母；忽略大小写，空格和标点会自动跳过";
   renderOriginal();
   renderCopyLine();
   $("#practice-paper").focus();
