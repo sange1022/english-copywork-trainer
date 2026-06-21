@@ -34,7 +34,10 @@
 
         <div class="practice-paper" id="practice-paper" tabindex="0">
           <div id="original-sentence" class="original-sentence"></div>
-          <div id="translation" class="translation">翻译加载中…</div>
+          <div class="translation-row">
+            <div id="translation" class="translation">翻译加载中…</div>
+            <button id="retry-translation" class="retry-button hidden" type="button">重新翻译</button>
+          </div>
           <div id="copy-line" class="copy-line" aria-live="polite"></div>
           <p id="typing-hint" class="typing-hint">只需输入字母；忽略大小写，空格和标点会自动跳过</p>
         </div>

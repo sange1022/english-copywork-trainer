@@ -158,10 +158,32 @@ textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgb(47 111 1
 
 .translation {
   min-height: 28px;
-  margin: 20px 0 46px;
+  margin: 0;
   color: #75807c;
   font-size: 16px;
 }
+
+.translation-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 28px;
+  margin: 20px 0 46px;
+}
+
+.retry-button {
+  flex: 0 0 auto;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  padding: 2px 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.retry-button:disabled { opacity: .55; cursor: wait; }
 
 .copy-line {
   min-height: 60px;

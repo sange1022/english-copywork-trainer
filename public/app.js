@@ -1,5 +1,6 @@
 import { splitSentences, tokenizeWords } from "/modules/text.js";
 import { accuracyFor, applyKey, countLetters, createTypingState } from "/modules/typing.js";
+import { translationView } from "/translation-view.js";
 
 const $ = (selector) => document.querySelector(selector);
 const screens = {
@@ -79,12 +80,22 @@ function renderSentence() {
   state.locked = false;
   $("#progress-label").textContent = `第 ${state.sentenceIndex + 1} / ${state.sentences.length} 句`;
   $("#accuracy-label").textContent = `正确率 ${currentAccuracy()}%`;
-  $("#translation").textContent =
-    state.translations[state.sentenceIndex]?.text ?? "翻译加载中…";
+  renderTranslation();
   $("#typing-hint").textContent = "只需输入字母；忽略大小写，空格和标点会自动跳过";
   renderOriginal();
   renderCopyLine();
   $("#practice-paper").focus();
+}
+
+function renderTranslation({ loading = false } = {}) {
+  const view = loading
+    ? translationView(null, { loading: true })
+    : state.translations[state.sentenceIndex]
+      ? translationView(state.translations[state.sentenceIndex])
+      : { text: "翻译加载中…", retryVisible: false };
+  $("#translation").textContent = view.text;
+  $("#retry-translation").classList.toggle("hidden", !view.retryVisible);
+  $("#retry-translation").disabled = loading;
 }
 
 async function loadTranslations() {
@@ -104,7 +115,27 @@ async function loadTranslations() {
     }));
   }
   if (!screens.practice.classList.contains("hidden")) {
-    $("#translation").textContent = state.translations[state.sentenceIndex]?.text;
+    renderTranslation();
+  }
+}
+
+async function retryCurrentTranslation() {
+  const index = state.sentenceIndex;
+  renderTranslation({ loading: true });
+  try {
+    const response = await fetch("/api/translate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ sentences: [state.sentences[index]] })
+    });
+    if (!response.ok) throw new Error();
+    const body = await response.json();
+    state.translations[index] = body.translations[0];
+  } catch {
+    state.translations[index] = { text: "翻译暂不可用", available: false };
+  }
+  if (state.sentenceIndex === index && !screens.practice.classList.contains("hidden")) {
+    renderTranslation();
   }
 }
 
@@ -211,6 +242,7 @@ function returnHome() {
 }
 
 $("#start-button").addEventListener("click", startFromInput);
+$("#retry-translation").addEventListener("click", retryCurrentTranslation);
 $("#exit-button").addEventListener("click", () => {
   if (confirm("退出本次练习吗？")) returnHome();
 });
