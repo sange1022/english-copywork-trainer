@@ -211,14 +211,6 @@ textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgb(47 111 1
 
 .typing-hint { margin: 30px 0 0; color: #9aa39e; font-size: 13px; }
 
-.ime-input {
-  position: fixed;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
-
 .word-popover {
   position: fixed;
   z-index: 10;

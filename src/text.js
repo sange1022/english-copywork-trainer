@@ -32,15 +32,11 @@ export function splitSentences(input) {
   if (!normalized) return [];
 
   const protectedValue = protectAbbreviations(normalized);
-  const matches = protectedValue.text.match(/.*?[.!?。！？]+(?:["'”’)\]]+)?(?=\s|$|[^\s])|.+$/g) ?? [];
+  const matches = protectedValue.text.match(/.*?[.!?]+(?:["'”’)\]]+)?(?=\s|$)|.+$/g) ?? [];
 
   return matches
     .map((sentence) => protectedValue.restore(sentence.trim()))
     .filter(Boolean);
-}
-
-export function detectPracticeMode(text) {
-  return /[\u3400-\u9FFF]/u.test(String(text ?? "")) ? "chinese" : "english";
 }
 
 export function tokenizeWords(sentence) {

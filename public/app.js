@@ -1,11 +1,5 @@
-import { detectPracticeMode, splitSentences, tokenizeWords } from "./modules/text.js";
-import {
-  accuracyFor,
-  applyKey,
-  applyText,
-  countPracticeCharacters,
-  createTypingState
-} from "./modules/typing.js";
+import { splitSentences, tokenizeWords } from "./modules/text.js";
+import { accuracyFor, applyKey, countLetters, createTypingState } from "./modules/typing.js";
 import { createBrowserTranslationApi } from "./browser-api.js";
 import { translationView } from "./translation-view.js";
 
@@ -26,7 +20,6 @@ const state = {
   totalErrors: 0,
   startedAt: 0,
   sourceText: "",
-  mode: "english",
   locked: false,
   timer: null
 };
@@ -38,19 +31,13 @@ function showScreen(name) {
 }
 
 function totalCharacters() {
-  return state.sentences.reduce(
-    (sum, sentence) => sum + countPracticeCharacters(sentence, state.mode),
-    0
-  );
+  return state.sentences.reduce((sum, sentence) => sum + countLetters(sentence), 0);
 }
 
 function currentAccuracy() {
   const completed = state.sentences
     .slice(0, state.sentenceIndex)
-    .reduce(
-      (sum, sentence) => sum + countPracticeCharacters(sentence, state.mode),
-      0
-    );
+    .reduce((sum, sentence) => sum + countLetters(sentence), 0);
   const current = state.typing?.correct ?? 0;
   return accuracyFor(completed + current, state.totalErrors);
 }
@@ -58,10 +45,6 @@ function currentAccuracy() {
 function renderOriginal() {
   const container = $("#original-sentence");
   container.replaceChildren();
-  if (state.mode === "chinese") {
-    container.textContent = state.sentences[state.sentenceIndex];
-    return;
-  }
   for (const token of tokenizeWords(state.sentences[state.sentenceIndex])) {
     if (token.lookup) {
       const button = document.createElement("button");
@@ -96,25 +79,18 @@ function renderCopyLine() {
 }
 
 function renderSentence() {
-  state.typing = createTypingState(state.sentences[state.sentenceIndex], state.mode);
+  state.typing = createTypingState(state.sentences[state.sentenceIndex]);
   state.locked = false;
-  $("#ime-input").disabled = state.mode !== "chinese";
-  $("#ime-input").setAttribute("aria-hidden", String(state.mode !== "chinese"));
   $("#progress-label").textContent = `第 ${state.sentenceIndex + 1} / ${state.sentences.length} 句`;
   $("#accuracy-label").textContent = `正确率 ${currentAccuracy()}%`;
   renderTranslation();
-  $("#typing-hint").textContent = state.mode === "chinese"
-    ? "使用中文输入法输入汉字；空格、标点、数字和字母会自动跳过"
-    : "只需输入字母；忽略大小写，空格和标点会自动跳过";
+  $("#typing-hint").textContent = "只需输入字母；忽略大小写，空格和标点会自动跳过";
   renderOriginal();
   renderCopyLine();
-  focusPracticeInput();
+  $("#practice-paper").focus();
 }
 
 function renderTranslation({ loading = false } = {}) {
-  const row = document.querySelector(".translation-row");
-  row.classList.toggle("hidden", state.mode === "chinese");
-  if (state.mode === "chinese") return;
   const view = loading
     ? translationView(null, { loading: true })
     : state.translations[state.sentenceIndex]
@@ -126,10 +102,6 @@ function renderTranslation({ loading = false } = {}) {
 }
 
 async function loadTranslations() {
-  if (state.mode === "chinese") {
-    state.translations = [];
-    return;
-  }
   try {
     state.translations = await translationApi.translateSentences(state.sentences);
   } catch {
@@ -173,14 +145,11 @@ function startFromInput() {
   const source = $("#source-text").value.trim();
   $("#home-error").textContent = "";
   if (!source) {
-    $("#home-error").textContent = "请先粘贴一些中文或英文句子。";
+    $("#home-error").textContent = "请先粘贴一些英文句子。";
     return;
   }
   state.sourceText = source;
-  state.mode = detectPracticeMode(source);
-  state.sentences = splitSentences(source).filter(
-    (sentence) => countPracticeCharacters(sentence, state.mode) > 0
-  );
+  state.sentences = splitSentences(source);
   if (!state.sentences.length) {
     $("#home-error").textContent = "没有识别到可练习的句子。";
     return;
@@ -206,19 +175,11 @@ function handleKey(event) {
     closePopover();
     return;
   }
-  if (state.mode === "chinese") {
-    if (event.key !== "Backspace") return;
-  } else if (event.key !== "Backspace" && event.key.length !== 1) {
-    return;
-  }
+  if (event.key !== "Backspace" && event.key.length !== 1) return;
 
   event.preventDefault();
   const previousErrors = state.typing.errors;
   state.typing = applyKey(state.typing, event.key);
-  afterTypingChange(previousErrors);
-}
-
-function afterTypingChange(previousErrors) {
   state.totalErrors += state.typing.errors - previousErrors;
   renderCopyLine();
   $("#accuracy-label").textContent = `正确率 ${currentAccuracy()}%`;
@@ -235,19 +196,6 @@ function afterTypingChange(previousErrors) {
       }
     }, 1000);
   }
-}
-
-function focusPracticeInput() {
-  if (state.mode === "chinese") $("#ime-input").focus();
-  else $("#practice-paper").focus();
-}
-
-function handleImeInput(event) {
-  if (state.mode !== "chinese" || event.isComposing || !event.target.value) return;
-  const previousErrors = state.typing.errors;
-  state.typing = applyText(state.typing, event.target.value);
-  event.target.value = "";
-  afterTypingChange(previousErrors);
 }
 
 async function lookupWord(word, anchor) {
@@ -284,8 +232,7 @@ $("#exit-button").addEventListener("click", () => {
 });
 $("#repeat-button").addEventListener("click", () => beginPractice({ reuseTranslations: true }));
 $("#home-button").addEventListener("click", returnHome);
-$("#practice-paper").addEventListener("click", focusPracticeInput);
-$("#ime-input").addEventListener("input", handleImeInput);
+$("#practice-paper").addEventListener("click", () => $("#practice-paper").focus());
 $("#source-text").addEventListener("input", (event) => {
   $("#character-count").textContent = `${event.target.value.length} / 12000`;
 });

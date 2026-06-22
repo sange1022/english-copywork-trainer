@@ -2,30 +2,19 @@ function isEnglishLetter(character) {
   return /^[A-Za-z]$/.test(character ?? "");
 }
 
-function isChineseCharacter(character) {
-  return /^[\u3400-\u9FFF]$/u.test(character ?? "");
-}
-
-function isPracticeCharacter(character, mode) {
-  return mode === "chinese"
-    ? isChineseCharacter(character)
-    : isEnglishLetter(character);
-}
-
-function skipIgnoredCharacters(target, index, mode) {
+function skipNonLetters(target, index) {
   let nextIndex = index;
-  while (nextIndex < target.length && !isPracticeCharacter(target[nextIndex], mode)) {
+  while (nextIndex < target.length && !isEnglishLetter(target[nextIndex])) {
     nextIndex += 1;
   }
   return nextIndex;
 }
 
-export function createTypingState(target, mode = "english") {
+export function createTypingState(target) {
   const normalizedTarget = String(target ?? "");
-  const index = skipIgnoredCharacters(normalizedTarget, 0, mode);
+  const index = skipNonLetters(normalizedTarget, 0);
   return {
     target: normalizedTarget,
-    mode,
     index,
     correct: 0,
     error: "",
@@ -42,20 +31,11 @@ export function applyKey(state, key) {
     return state;
   }
 
-  if (key === "Backspace" || key.length !== 1) return state;
-  return applyText(state, key);
-}
-
-function applyCharacter(state, character) {
-  if (!isPracticeCharacter(character, state.mode)) return state;
+  if (key === "Backspace" || key.length !== 1 || !isEnglishLetter(key)) return state;
 
   const expected = state.target[state.index];
-  const matches = state.mode === "english"
-    ? character.toLocaleLowerCase("en") === expected.toLocaleLowerCase("en")
-    : character === expected;
-
-  if (matches) {
-    const index = skipIgnoredCharacters(state.target, state.index + 1, state.mode);
+  if (key.toLocaleLowerCase("en") === expected.toLocaleLowerCase("en")) {
+    const index = skipNonLetters(state.target, state.index + 1);
     return {
       ...state,
       index,
@@ -64,21 +44,11 @@ function applyCharacter(state, character) {
     };
   }
 
-  return { ...state, error: character, errors: state.errors + 1 };
+  return { ...state, error: key, errors: state.errors + 1 };
 }
 
-export function applyText(state, text) {
-  let nextState = state;
-  for (const character of String(text ?? "")) {
-    if (nextState.complete || nextState.error) break;
-    nextState = applyCharacter(nextState, character);
-  }
-  return nextState;
-}
-
-export function countPracticeCharacters(text, mode = "english") {
-  const pattern = mode === "chinese" ? /[\u3400-\u9FFF]/gu : /[A-Za-z]/g;
-  return (String(text ?? "").match(pattern) ?? []).length;
+export function countLetters(text) {
+  return (String(text ?? "").match(/[A-Za-z]/g) ?? []).length;
 }
 
 export function accuracyFor(targetCharacters, errors) {

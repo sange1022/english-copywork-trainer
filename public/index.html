@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>中英文打字临摹</title>
+    <title>英文打字临摹</title>
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
@@ -11,12 +11,12 @@
       <section id="home-screen" class="screen">
         <header class="intro">
           <p class="brand">TYPE · LEARN · REMEMBER</p>
-          <h1>中英文打字临摹</h1>
-          <p>粘贴中文或英文，逐字输入。错了就停下来改对，再继续。</p>
+          <h1>英文打字临摹</h1>
+          <p>粘贴英文，逐字输入。错了就停下来改对，再继续。</p>
         </header>
 
-        <label class="input-label" for="source-text">粘贴中英文内容</label>
-        <textarea id="source-text" maxlength="12000" placeholder="例如：学习需要练习。或 Learning takes practice."></textarea>
+        <label class="input-label" for="source-text">粘贴英文内容</label>
+        <textarea id="source-text" maxlength="12000" placeholder="例如：Learning a language takes time. Practice makes progress."></textarea>
         <div class="input-footer">
           <span id="character-count">0 / 12000</span>
           <span>翻译需要联网</span>
@@ -40,7 +40,6 @@
           </div>
           <div id="copy-line" class="copy-line" aria-live="polite"></div>
           <p id="typing-hint" class="typing-hint">只需输入字母；忽略大小写，空格和标点会自动跳过</p>
-          <input id="ime-input" class="ime-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="中文输入区">
         </div>
 
         <div id="word-popover" class="word-popover hidden" role="dialog">
